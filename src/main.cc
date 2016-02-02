@@ -13,7 +13,8 @@
 #include "back_transformer.h"
 #include "grammar_simplifier.h"
 
-#define TEST 
+//#define TEST 
+#define OUTPUT_INFO
 
 using namespace std;
 
@@ -21,6 +22,7 @@ int process_argument(int argc, char** arsgv, bool* flags, string& error_msg, str
 string get_suffix(string name);
 string get_prefix(string name);
 void produce_coo_file(string file_name);
+extern int size_byte(int);
 
 int main(int argc, char **argv)
 {
@@ -129,6 +131,11 @@ void produce_coo_file(string file_name)
 	ofstream fout;
 	fout.open(output_file_name);
 	
+#ifdef OUTPUT_INFO
+	cout << height << " " << width << " " <<  ps.size() << endl;
+	cout << "CRS :" << ps.size() * size_byte(width) + height * size_byte(ps.size()) << endl << endl;
+#endif
+
 	fout << height << " " << width << " " <<  ps.size() << endl;
 	for (set<position>::iterator it = ps.begin(); it != ps.end(); ++it)
 		fout << it->row << " " << it->col << endl;
@@ -206,7 +213,6 @@ string get_suffix(string name)
 string get_prefix(string name)
 {
 	size_t found = name.find_last_of('.');
-	cout << "found: " << found << endl;
 	if (found == string::npos) return name;
 	else return name.substr(0, found);
 }

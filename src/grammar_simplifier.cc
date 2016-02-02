@@ -1,5 +1,10 @@
 #include "grammar_simplifier.h"
 
+#define OUTPUT_STAT
+
+extern int size_byte(int n);
+extern int get_diff(position p, position q, int width);
+
 Grammar_simplifier::Grammar_simplifier(){}
 
 void Grammar_simplifier::simplify(string file_stem)
@@ -139,15 +144,40 @@ void Grammar_simplifier::simplify(string file_stem)
 	}
 	
 	fout.close();
+#ifdef OUTPUT_STAT
+	cout << "|V|: " << count_cv << endl;
+	cout << "V0: " << canonical[0].size() << endl;
+	int tot_edge = 0;
+	for (int i=0;i<count_cv;++i) 
+		tot_edge += canonical[i].size();
+	cout << "Total edge: " << tot_edge << endl;
+	
+	int max_diff = 0;
+	position prev(0,0);
+	for (g_map_it it = canonical[0].begin(); it!= canonical[0].end(); ++it)
+	{	
+		max_diff = max(max_diff, get_diff(prev, it->first, width));
+		prev = it->first;
+	}
 
-	int comp = 0;
-	comp += canonical[0].size() * 2 + 1;
+	int comp =  (size_byte(max_diff) + size_byte(count_cv)) * canonical[0].size();
+	cout << "Max run length in V0: " << max_diff << endl;
+	cout << "Memory for V0: " <<  comp << endl;
+
+	int count_two = 0;
 	for (int i=1;i<count_cv;++i)
 	{
-		comp += canonical[i].size() * 3;
-		comp -= 2;
+		if (canonical[i].size()==2) ++count_two;
+
+		comp += canonical[i].size() * size_byte(count_cv);
+		comp += (canonical[i].size()-1) * 2;
+		//comp -= 2;
 	}
 	cout << endl << endl << comp << endl << endl;
+	
+	cout << "Variable of size 2: " << count_two << endl;
+#endif
+
 	delete [] g;
 	delete [] canonical;
 	delete [] used;
