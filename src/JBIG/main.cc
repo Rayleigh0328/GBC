@@ -14,6 +14,7 @@ extern void read_pbm(string file_name, int& height, int& width, set<position>& p
 extern void read_mtx(string file_name, int& height, int& width, set<position>& ps);
 extern void output_pbm_1(string file_stem, int height, int width, const set<position>& ps);
 extern void output_pbm_4(string file_stem, int height, int width, const set<position>& ps);
+extern void jbig_encode(int height, int width, const set<position> &ps, string file_name, bool tp_on);
 
 int main(int argc, char** argv)
 {
@@ -59,11 +60,12 @@ int main(int argc, char** argv)
 	//output_pbm_1(file_name, height, width, ps);
 	//output_pbm_4(file_name, height, width, ps);
 
-	JBIG_encoder enc;
-	queue<bool> buf;
-	enc.encode(height, width, ps, buf);
+	// encode image with non-progressive jbig and no typical prediction
+	jbig_encode(height, width, ps, file_name, false);
+	// encode image with non-progressive jbig and typical prediction on
+	//jbig_encode(height, width, ps, file_name, true);
 
-	output_jbg(file_name, buf);
+	//output_jbg(file_name, buf);
 	
 
 	return 0;

@@ -12,7 +12,7 @@
 #include "grammar_transformer.h"
 #include "back_transformer.h"
 #include "grammar_simplifier.h"
-#include "entropy_coder.h"
+#include "entropy_codec.h"
 
 //#define TEST 
 #define OUTPUT_INFO
@@ -77,11 +77,13 @@ int main(int argc, char **argv)
 	bt.back_transform(file_stem + ".fin");
 
 	// If code_word_level_flag is on, further compress Grammar representation to code word
-	if (flag[3])
+	if (flags[3])
 	{
+		queue<bool> bit_stream;
+		while (!bit_stream.empty()) bit_stream.pop();
 		Entropy_codec ec;
-		ec.encode(file_stem+".bin");
-		ec.decode(file_stem+".bin");
+		ec.encode(file_stem, bit_stream);
+		//ec.decode(file_stem+".bin");
 	}
 
 	return 0;
