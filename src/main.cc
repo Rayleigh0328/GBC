@@ -12,6 +12,7 @@
 #include "grammar_transformer.h"
 #include "back_transformer.h"
 #include "grammar_simplifier.h"
+#include "entropy_coder.h"
 
 //#define TEST 
 #define OUTPUT_INFO
@@ -64,7 +65,7 @@ int main(int argc, char **argv)
 	Grammar_transformer gt;
 	gt.transform(file_stem, flags[0]);
 	
-	// transform raw grammar file back to COO file, called ($stem)_back.coo
+	// transform raw grammar file back to COO file, called ($stem).raw.recon.coo
 	Back_transformer bt;
 	bt.back_transform(file_stem + ".raw");
 
@@ -72,9 +73,16 @@ int main(int argc, char **argv)
 	Grammar_simplifier gs;
 	gs.simplify(file_stem);
 	
+	// transform final grammar file back to COO file, called ($stem).fin.recon.coo
 	bt.back_transform(file_stem + ".fin");
 
 	// If code_word_level_flag is on, further compress Grammar representation to code word
+	if (flag[3])
+	{
+		Entropy_codec ec;
+		ec.encode(file_stem+".bin");
+		ec.decode(file_stem+".bin");
+	}
 
 	return 0;
 }
@@ -110,23 +118,45 @@ void produce_coo_file(string file_name)
 	}
 	else
 	{
-		// process pbm file
+		string format;
+		fin >> format >> width >> height;
+		if (format == "P1")
+		{
+			int tmp;
+			for (int i=0;i<height;++i)
+				for (int j=0;j<width;++j)
+				{
+					fin >> tmp;
+					if (tmp == 1) ps.insert(position(i,j));
+				}
+		}
+		else if (format == "P4")
+		{
+			string tail;
+			getline(fin, tail);
 
-		int tmp;
-		// read image size
-		fin >> width >> height;
-		// process image
-		for (int i=0;i<height;++i)
-			for (int j=0;j<width;++j)
-			{
-				fin >> tmp;
-				if (tmp == 1)
-					ps.insert(position(i,j));
-			}
+			char * buf = new char;
+			for (int i=0;i<height;++i)
+				for (int j=0;j<width;++j)
+				{
+					int num = i*width+j;
+					if (num % 8 == 0) 
+					{
+						fin.read(buf, 1);
+						//cout << *buf << endl;
+					}
+					int tmp = ((*buf) << (num % 8)) & (1<<7);
+					if (tmp != 0) ps.insert(position(i,j));
+				}
+		}
+		else
+		{
+			cout << "PBM format not supported." << endl;
+		}	
 	}
 	fin.close();
 
-	if (ps.size() != cnt) while (1) cout << "ERROR" << endl;
+	//if (ps.size() != cnt) while (1) cout << "ERROR" << endl;
 	string output_file_name = get_prefix(file_name) + ".coo";
 	ofstream fout;
 	fout.open(output_file_name);
