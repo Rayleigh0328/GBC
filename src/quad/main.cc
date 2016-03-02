@@ -28,7 +28,7 @@ int main(int argc, char **argv)
 
 	Quad_tree_transformer qt;
 	double size = qt.transform(file_name, tile_size);
-	cout << size << endl;
+	cout << file_name << " " << size << endl;
 
 	return 0;
 }

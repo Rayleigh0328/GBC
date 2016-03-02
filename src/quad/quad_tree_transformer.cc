@@ -19,6 +19,7 @@ double Quad_tree_transformer::transform(string file_name, int tile_size)
 	{
 		int r, c;
 		fin >> r >> c;
+		getline(fin, tmp);
 		root->ps.insert(position(r-1, c-1));
 	}
 	for (int i=0;i<4;++i)
@@ -27,14 +28,14 @@ double Quad_tree_transformer::transform(string file_name, int tile_size)
 	split(root, tile_size);
 
 	fin.close();
-
+/*
 	ofstream fout;
 	string check_filename = "check.mtx";
 	fout.open(check_filename);
 
 	transform_back(root, tile_size, fout);
 	fout.close();
-
+*/
 	return get_complexity(root, tile_size);
 }
 
@@ -86,7 +87,7 @@ void Quad_tree_transformer::split(node* p, int tile_size)
 	// check ps should be empty
 	if (!p->ps.empty())
 	{
-		cout << "point set not empty" << endl;
+		cerr << "point set not empty" << endl;
 		while(1);
 	}
 
@@ -137,10 +138,10 @@ int Quad_tree_transformer::get_complexity(node* p, int tile_size)
 		int size_crs = p->ps.size() * tb + p->height * get_byte(p->ps.size());
 
 		ans = min(size_coo, size_crs);
-		cout << "heihgt: " << p->height << endl;
-		cout << "width: " << p->width << endl;
-		cout << "# of points: "  << p->ps.size() << endl; 
-		cout << size_coo <<  " " << size_crs << endl;
+		//cerr << "heihgt: " << p->height << endl;
+		//cerr << "width: " << p->width << endl;
+		//cerr << "# of points: "  << p->ps.size() << endl; 
+		//cerr << size_coo <<  " " << size_crs << endl;
 		return ans + 1;
 	}
 
