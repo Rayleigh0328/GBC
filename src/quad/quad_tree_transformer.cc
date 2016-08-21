@@ -13,14 +13,19 @@ double Quad_tree_transformer::transform(string file_name, int tile_size)
 	string tmp;
 	while (fin.peek() == '%') getline(fin, tmp);
 
+	set<position> original_ps;
+	original_ps.clear();
+
 	fin >> root->height >> root->width >> cnt;
 	root->ps.clear();
+
 	for (int i=0;i<cnt;++i)
 	{
 		int r, c;
 		fin >> r >> c;
 		getline(fin, tmp);
 		root->ps.insert(position(r-1, c-1));
+		original_ps.insert(position(r-1,c-1));
 	}
 	for (int i=0;i<4;++i)
 		root->child[i] = NULL;
@@ -28,25 +33,23 @@ double Quad_tree_transformer::transform(string file_name, int tile_size)
 	split(root, tile_size);
 
 	fin.close();
-/*
-	ofstream fout;
-	string check_filename = "check.mtx";
-	fout.open(check_filename);
 
-	transform_back(root, tile_size, fout);
-	fout.close();
-*/
+	transform_back(root, tile_size, original_ps);
+
 	return get_complexity(root, tile_size);
 }
 
-void Quad_tree_transformer::transform_back(node* root, int tile_size, ofstream &fout)
+void Quad_tree_transformer::transform_back(node* root, int tile_size, const set<position>& ori)
 {
 	set<position> ps;
 	ps.clear();
 	construct_ps(root,tile_size,ps,0,0);
-	fout << root->height << " " << root->width << " " << ps.size() << endl;
 	for (pit it= ps.begin(); it != ps.end(); ++it)
-		fout << it->row + 1<< " " << it->col + 1<< endl;
+		if (ori.find(*it) == ori.end())
+		{
+			cout << endl << "Error: Quad Tree not correct." << endl << endl;
+		}
+	cout << "Quad tree correctness check passed." << endl;
 }
 
 void Quad_tree_transformer::construct_ps(node* p, int tile_size, set<position>& ans, int hb, int wb)
@@ -122,6 +125,35 @@ int Quad_tree_transformer::get_byte(int t)
 	return 4;
 }
 
+double Quad_tree_transformer::get_complexity(node* p, int tile_size)
+{
+	if (p == NULL) return 0;
+	double ans;
+//	int tb = get_byte(tile_size);
+
+	if (p->height <= tile_size && p->width <= tile_size)
+	{
+		// COO
+		double size_coo = p->ps.size() * 2;
+
+		// CRS
+		double size_crs = p->ps.size()  + p->height * get_byte(p->ps.size());
+
+		ans = min(size_coo, size_crs);
+
+		//cerr << "heihgt: " << p->height << endl;
+		//cerr << "width: " << p->width << endl;
+		//cerr << "# of points: "  << p->ps.size() << endl; 
+		//cerr << size_coo <<  " " << size_crs << endl;
+		return (ans+1)/4.0;
+	}
+
+	ans = 4;
+	for (int i=0;i<4;++i)
+		ans += get_complexity(p->child[i], tile_size);
+	return ans;
+}
+/*
 int Quad_tree_transformer::get_complexity(node* p, int tile_size)
 {
 	if (p == NULL) return 0;
@@ -150,6 +182,6 @@ int Quad_tree_transformer::get_complexity(node* p, int tile_size)
 		ans += get_complexity(p->child[i], tile_size);
 	return ans;
 }
-
+*/
 
 

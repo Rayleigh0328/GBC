@@ -9,15 +9,17 @@ void Entropy_codec::encode(string file_stem, queue<bool>& output)
 	fin.open(input_file_name);
 	
 	// read input file
-
 	fin >> height >> width >> tot_var;
-
-	queue<bool> num_buf;
-	while (!num_buf.empty()) num_buf.pop();
-
-	//encode_nums(num_buf);
-
 	++tot_var;
+
+	
+	// encode matrix size and number of variables
+	Elias_encoder e_enc;
+	e_enc.encode(height, output);
+	e_enc.encode(width, output);
+	e_enc.encode(tot_var, output);
+
+	cout << "Buffer size after encode numbers: " << output.size() << endl;
 
 	string line;
 	getline(fin, line);
@@ -26,28 +28,31 @@ void Entropy_codec::encode(string file_stem, queue<bool>& output)
 	getline(fin, line);
 	stringstream ss(line);
 
-	set<position> ps;
-	ps.clear();
-
-	queue<bool> label_buf;
-	while (!label_buf.empty()) label_buf.pop();
-
-	queue<bool> struct_buf;
-	while (!struct_buf.empty()) struct_buf.pop();
 
 	int row, col, label;
 
 	AC_encoder enc;
 
+	queue<bool> label_buf;
+	while (!label_buf.empty()) label_buf.pop();
+
+	int prev = -1;
 	while (ss >> row >> col >> label)
 	{
-		ps.insert(position(row, col));
+		int cur = row * width + col;
+		e_enc.encode(cur-prev, output);
+		prev = cur;
+
 		encode_label(enc, label,label_buf);
 	}
+	// terminate encoding of v0 structure by encode ()
+	e_enc.encode(width*height-prev,output);
 
-	output_pbm_4(file_stem, height, width, ps);
+	cout << "Buffer size after encode structure of V0: " << output.size() << endl;
 
-	for (int i=1;i<tot_var;++i)
+	//output_pbm_4(file_stem, height, width, ps);
+
+	for (int i=1;i<tot_var-1;++i)
 	{	
 		getline(fin, line);
 		stringstream ss(line);
@@ -55,15 +60,38 @@ void Entropy_codec::encode(string file_stem, queue<bool>& output)
 		ss >> label;
 		encode_label(enc, label, label_buf);
 
+		vector<position> pv;
+		pv.clear();
 		while (ss >> row >> col >> label)
 		{
 			//encode_structure(row, col);
+			pv.push_back(position(row, col));
 			encode_label(enc, label, label_buf);
 		}
+		int min_col = -1;
+		for (int i=0;i<pv.size();++i)
+			min_col = min(min_col, pv[i].col);
+
+		if (pv.size() == 0) cerr << "variable " << i << endl;
+		//assert(pv.size() > 0);
+		e_enc.encode(pv.size(), output);
+		for (int i=0;i<pv.size();++i)
+		{
+			e_enc.encode(pv[i].row+1, output);
+			e_enc.encode(pv[i].col-min_col+1, output);
+		}
 	}
-	
+
+	cout << "Buffer size after encode structure of other variables: " << output.size() << endl;
+	// terminate lable encoding by pass 0 to ac	
 	enc.encode_symbol(0, label_buf);
+
 	cout <<"label buf size:" <<  label_buf.size() << endl;
+
+	int result = output.size() + label_buf.size();
+	cout << "tot size: " << result << endl;
+	cout << "tot byte: " << result /8.0 << endl;
+	cout << "tot kb  : " << result / 8.0 / 1024 << endl;
 	//output.clear();
 }
 

@@ -30,8 +30,8 @@ private:
 
 	void split(node* p, int tile_size);
 	void process_point(node* p, int c_num, int row, int col);
-	int get_complexity(node* p, int tile_size);
-	void transform_back(node* root, int tile_size, ofstream &fout);
+	double get_complexity(node* p, int tile_size);
+	void transform_back(node* root, int tile_size, const set<position>& ori);
 	void construct_ps(node* p, int tile_size, set<position>& ans, int hb, int wb);
 	int get_byte(int t);
 };

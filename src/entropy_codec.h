@@ -7,6 +7,7 @@
 #include<fstream>
 #include<sstream>
 #include<cstdio>
+#include<cassert>
 
 #include "position.h"
 #include "./arithmetic_code/ac_encoder.h"

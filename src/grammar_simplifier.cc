@@ -145,6 +145,85 @@ void Grammar_simplifier::simplify(string file_stem)
 	
 	fout.close();
 #ifdef OUTPUT_STAT
+
+	cout << "|V|: " << count_cv << endl;
+	cout << "V0: " << canonical[0].size() << endl;
+	int tot_edge = 0;
+	for (int i=0;i<count_cv;++i) 
+		tot_edge += canonical[i].size();
+	cout << "Total edge: " << tot_edge << endl;
+
+	int cnt_term = 0;
+	for (g_map_it it=canonical[0].begin(); it != canonical[0].end(); ++it)
+		if (it->second == 0) 
+			++cnt_term;
+	cout << "cnt_term:" << cnt_term << endl;
+	int cnt_nonterm = canonical[0].size() - cnt_term;
+
+	int comp = 4;
+
+	int term_coo = 2 * cnt_term;
+	int term_csr = cnt_term + height;
+	if (term_coo <= term_csr)
+	{
+		comp += term_coo;
+		cout << "V0 terminal edge representation: COO" << endl;
+	}
+	else
+	{
+		comp += term_csr;
+		cout << "V0 terminal edge representation: CSR" << endl;
+	}
+
+	int nonterm_coo = 3 * cnt_nonterm;
+	int nonterm_csr = 2 * cnt_nonterm + height;
+	if (nonterm_coo <= nonterm_csr)
+	{
+		comp += nonterm_coo;
+		cout << "V0 non-t edge representation: COO" << endl;
+	}
+	else
+	{
+		comp += nonterm_csr;
+		cout << "V0 non-t edge representation: CSR" << endl;
+	}
+	/*
+	int coo_size = canonical[0].size() * 3;
+	int csr_size = canonical[0].size() * 2 + height;
+
+	int comp = 3;
+	if (coo_size <= csr_size)
+	{
+		comp += coo_size;
+		cout << "V0 representation: COO" << endl;
+	}
+	else
+	{
+		comp += csr_size;
+		cout << "V0 representation: CSR" << endl;
+	}
+	*/
+	int count_two = 0;
+	for (int i=1;i<count_cv;++i)
+	{
+		if (canonical[i].size()==2) 
+		{
+			++count_two;
+			comp += 4;
+		}
+		else
+		{
+			comp += 1;
+			comp += (canonical[i].size()-1) * 3 + 1;
+		}
+		//comp -= 2;
+	}
+	cout << endl << endl << comp << endl;
+	
+	cout << "Variable of size 2: " << count_two << endl<<endl<<endl<<endl;
+
+
+	/*
 	cout << "|V|: " << count_cv << endl;
 	cout << "V0: " << canonical[0].size() << endl;
 	int tot_edge = 0;
@@ -176,6 +255,7 @@ void Grammar_simplifier::simplify(string file_stem)
 	cout << endl << endl << comp << endl << endl;
 	
 	cout << "Variable of size 2: " << count_two << endl;
+	*/
 #endif
 
 	delete [] g;

@@ -15,7 +15,7 @@
 #include "entropy_codec.h"
 
 //#define TEST 
-#define OUTPUT_INFO
+//#define OUTPUT_INFO
 
 using namespace std;
 
@@ -66,19 +66,20 @@ int main(int argc, char **argv)
 	gt.transform(file_stem, flags[0]);
 	
 	// transform raw grammar file back to COO file, called ($stem).raw.recon.coo
-	Back_transformer bt;
-	bt.back_transform(file_stem + ".raw");
+	//Back_transformer bt;
+	//bt.back_transform(file_stem + ".raw");
 
 	// grammar simplification, store simplified grammar in .gram file
 	Grammar_simplifier gs;
 	gs.simplify(file_stem);
 	
 	// transform final grammar file back to COO file, called ($stem).fin.recon.coo
-	bt.back_transform(file_stem + ".fin");
+	//bt.back_transform(file_stem + ".fin");
 
 	// If code_word_level_flag is on, further compress Grammar representation to code word
 	if (flags[3])
 	{
+		cout << "Entropy code:" << endl;
 		queue<bool> bit_stream;
 		while (!bit_stream.empty()) bit_stream.pop();
 		Entropy_codec ec;
@@ -115,6 +116,7 @@ void produce_coo_file(string file_name)
 		{
 			int row, col;
 			fin >> row >> col;
+			getline(fin,st);
 			ps.insert(position(row-1, col-1));
 		}
 	}
